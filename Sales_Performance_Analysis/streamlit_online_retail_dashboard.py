@@ -19,19 +19,14 @@ csv_filename = "online_retail_II.csv"
 zip_path = "online_retail.zip"
 
 def get_dataset_path():
-    # Case 1: CSV already extracted
     if os.path.exists(csv_filename):
         return csv_filename
-
-    # Case 2: ZIP exists, extract CSV
     elif os.path.exists(zip_path):
         with zipfile.ZipFile(zip_path, "r") as z:
             z.extractall()
             for f in z.namelist():
                 if f.endswith(".csv"):
                     return f
-
-    # Case 3: Nothing found
     else:
         st.error("❌ Dataset not found. Please upload `online_retail.zip` or `online_retail_II.csv`.")
         st.stop()
@@ -188,7 +183,7 @@ customer_features = customer_segments(data)
 product_summary = product_analytics(data)
 
 # -------------------------------------------
-# 6. Streamlit Tabs & Visuals (Unchanged)
+# 6. Streamlit Tabs & Visuals
 # -------------------------------------------
 tab1, tab2, tab3 = st.tabs(["Executive Overview", "Customer Analytics", "Product Analytics"])
 
@@ -268,5 +263,113 @@ with tab1:
     fig_country.update_traces(texttemplate='$%{text:,.0f}', textposition='outside')
     st.plotly_chart(fig_country)
 
-# -- Tab 2 & 3 remain unchanged (Customer & Product Analytics)
-# Copy your previous code for tabs 2 and 3 here
+# -- Tab 2: Customer Analytics
+with tab2:
+    st.header("🔹 Customer Analytics (Micro View)")
+    guest_count = data['customer_id'].isna().sum() + (data['customer_id']=='Guest').sum()
+    registered_customers = data['customer_id'].dropna().nunique()
+    total_customers = guest_count + registered_customers
+    total_revenue = data['Revenue'].sum()
+    avg_rev_per_customer = total_revenue / total_customers if total_customers else 0
+
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+    kpi1.metric("👥 Total Customers", f"{total_customers}")
+    kpi2.metric("🧑‍💻 Registered Customers", f"{registered_customers}")
+    kpi3.metric("👤 Guest Customers", f"{guest_count}")
+    kpi4.metric("💰 Avg Revenue per Customer", f"${avg_rev_per_customer:,.0f}")
+
+    st.markdown("---")
+
+    if 'risk_segment' in customer_features.columns:
+        cluster_cancel = (
+            customer_features.groupby('risk_segment')['cancellation_rate']
+            .mean()*100
+        ).reset_index()
+
+        fig_cluster_cancel = px.bar(
+            cluster_cancel,
+            x='risk_segment',
+            y='cancellation_rate',
+            text=cluster_cancel['cancellation_rate'].apply(lambda x: f"{x:.2f}%"),
+            color='cancellation_rate',
+            template='plotly_dark',
+            color_continuous_scale='Reds',
+            title="Cancellation Rate by Customer Segment",
+            width=900, height=450
+        )
+        fig_cluster_cancel.update_traces(textposition='outside')
+        st.plotly_chart(fig_cluster_cancel)
+
+# -- Tab 3: Product Analytics
+with tab3:
+    st.header("🔹 Product Analytics (Meso View)")
+
+    top_canceled = product_summary.sort_values("cancellations", ascending=False).head(10)
+    top_returned = product_summary.sort_values("returns", ascending=False).head(10)
+    top_lost_rev = product_summary.sort_values("lost_revenue", ascending=False).head(10)
+
+    col1, col2, col3 = st.columns([1.2, 1.2, 1.4])
+    with col1:
+        fig_cancel = px.bar(
+            top_canceled,
+            x='cancellations',
+            y='description',
+            orientation='h',
+            text='cancellations',
+            color='cancellations',
+            template='plotly_dark',
+            color_continuous_scale='Reds',
+            title="Top 10 Canceled Products",
+            width=500, height=450
+        )
+        fig_cancel.update_traces(textposition='outside')
+        fig_cancel.update_layout(yaxis={'categoryorder':'total ascending'})
+        st.plotly_chart(fig_cancel)
+
+    with col2:
+        fig_return = px.bar(
+            top_returned,
+            x='returns',
+            y='description',
+            orientation='h',
+            text='returns',
+            color='returns',
+            template='plotly_dark',
+            color_continuous_scale='Blues',
+            title="Top 10 Returned Products",
+            width=500, height=450
+        )
+        fig_return.update_traces(textposition='outside')
+        fig_return.update_layout(yaxis={'categoryorder':'total ascending'})
+        st.plotly_chart(fig_return)
+
+    with col3:
+        fig_lost = px.bar(
+            top_lost_rev,
+            x='lost_revenue',
+            y='description',
+            orientation='h',
+            text='lost_revenue',
+            color='lost_revenue',
+            template='plotly_dark',
+            color_continuous_scale='Oranges',
+            title="Top 10 Products by Lost Revenue",
+            width=550, height=450
+        )
+        fig_lost.update_traces(texttemplate='$%{text:,.0f}', textposition='outside')
+        fig_lost.update_layout(yaxis={'categoryorder':'total ascending'})
+        st.plotly_chart(fig_lost)
+
+    product_dashboard = product_summary.sort_values("lost_revenue", ascending=False)[
+        ["stockcode","description","cancellations","returns","giveaways",
+         "revenue","lost_revenue","cancellation_rate","return_rate"]
+    ].reset_index(drop=True)
+
+    st.dataframe(
+        product_dashboard.style.format({
+            'revenue':'${:,.0f}',
+            'lost_revenue':'${:,.0f}',
+            'cancellation_rate':'{:.2%}',
+            'return_rate':'{:.2%}'
+        }).set_properties(**{'text-align':'left','color':'white','background-color':'rgba(0,0,0,0.5)'})
+    )
