@@ -1,148 +1,275 @@
-🛒 Online Retail II Analytics – Executive Dashboard
-📌 Project Overview
+🛒 Online Retail II — Executive Insights & Analytics Dashboard
+Data-Driven Risk Detection, Customer Segmentation, and Revenue Intelligence
 
-This project transforms messy retail transaction data into executive-level business insights using advanced data analytics and interactive dashboards.
-Instead of stopping at simple KPIs like “total sales,” this dashboard reveals:
+This project transforms a messy, real-world retail dataset into an executive-grade decision system.
+It combines EDA, behavioral segmentation, anomaly detection, and an interactive Streamlit dashboard to surface insights on cancellations, fraud patterns, product risk, and high-value customer behavior.
 
-Fraud and cancellation risks
+Designed for executives, strategy teams, and business leaders, not only data practitioners.
 
-ROI leakage from returns and giveaways
+📂 Repository Structure
+📁 online-retail-analytics
+│── README.md
+│── retail_dashboard.py           # Streamlit executive dashboard
+│── data_preparation.ipynb        # EDA + cleaning + feature engineering
+│── clustering_rfm.ipynb          # Segmentation workflow
+│── model_outputs/                # Scaled features, clusters, exports
+│── /assets                       # All dashboard visuals and charts
+│── Online Retail II.csv          # Dataset
 
-Customer behavior patterns via segmentation
+🗂️ 1. Project Objective
+What this project solves and why it matters
 
-Product-level risks and performance
+The objective is to build a retail sales-performance intelligence system that answers high-level business questions:
 
-Geographic revenue concentration
+Why is revenue being lost through cancellations and returns?
 
-Built with Streamlit + Python + Plotly, it bridges exploratory data analysis (EDA) with decision-ready executive dashboards.
+Which customers represent long-term value or risk?
 
-⚙️ Tech Stack
+Which products create dissatisfaction or contribute to ROI leakage?
 
-Python Libraries: pandas, numpy, duckdb, scikit-learn, plotly, streamlit
+Where do suspicious or anomalous transactions occur?
 
-Techniques: Data cleaning, feature engineering, clustering, anomaly detection, segmentation, dashboarding
+How should executives prioritize retention, quality control, and market expansion?
 
-🔑 Analytical Workflow
-1. Data Preparation
+This dashboard equips decision-makers with clear, actionable metrics, not raw data tables.
 
-Standardized column names, removed duplicates.
+🛠️ 2. Data Understanding
+What’s in the dataset and why it matters
 
-Used DuckDB SQL queries to assign canonical product descriptions for missing/duplicate values.
+The dataset includes:
 
-Removed incomplete transactions but reframed anomalies as insights instead of discarding them.
+Category	Fields	Purpose
+Invoices	InvoiceNo, InvoiceDate	Detect cancellations, fraud, seasonality
+Products	StockCode, Description, Price, Quantity	Product performance, return rates, giveaways
+Customers	CustomerID, Country	Loyalty identification and geographic risk
+Transactions	Line totals, timestamps	Revenue, lost revenue, order patterns
+Key Data Challenges
 
-Business Value:
-Data cleaning exposed inefficiencies—fraudulent cancellations, untraceable guest IDs, and promotional giveaways. These anomalies were reframed as strategic risk indicators.
+These challenges reflect real retail problems:
 
-2. Feature Engineering
+Missing product descriptions
 
-Created features aligned with business pain points:
+Negative or zero quantity (returns, giveaways, fraudulent adjustments)
 
-IsCancellation, IsReturn, IsGiveaway → Transaction-level risk flags
+Missing CustomerID (guest shoppers)
 
-Revenue & LostRevenue → Measured impact of fraud/returns
+UK-heavy distribution dominating the dataset
 
-Customer_Type (Guest vs Registered) → Loyalty segmentation
+Duplicate SKUs with inconsistent descriptions
 
-InvoiceDate parsing → Seasonal and trend analysis
+Each issue was reframed as business intelligence, not “noise.”
 
-Business Value:
-Feature engineering translated raw sales into actionable business KPIs, making fraud, dissatisfaction, and marketing inefficiencies measurable.
+🧹 3. Data Cleaning & Feature Engineering
+Turning chaotic data into business-ready signals
+✅ Flags engineered to expose risk patterns:
+Feature	Meaning
+IsCancellation	Invoices starting with "C"
+IsReturn	Negative quantity
+IsGiveaway	Price ≤ 0 or Qty ≤ 0
+IsGuestCustomer	Missing CustomerID
+LostRevenue	Revenue lost through cancellations/returns
+✅ Other cleaning operations:
 
-3. Customer Segmentation (K-Means Clustering)
+Standardized column names
 
-Applied K-Means on scaled behavioral features:
+Removed duplicates
 
-Cancellation rate
+Used DuckDB SQL to map StockCode → most frequent Description
 
-Total invoices
+Filtered but preserved negative transactions for revenue-risk analysis
 
-Average invoice value
-
-Segments Identified:
-
-🚩 Unreliable One-Timers – high cancellations, low engagement
-
-🛍️ Casual Buyers – irregular, low spenders
-
-💳 Steady Spenders – consistent, mid-level value
-
-👑 Loyal High-Value Customers – reliable revenue drivers
-
-Business Value:
-Instead of demographic buckets, segmentation was behavior-based, empowering targeted loyalty campaigns and retention strategies.
-
-4. Product Analytics
-
-Grouped transactions at SKU level to analyze:
-
-Cancellation rate
-
-Return rate
-
-Giveaway rate
-
-Lost revenue per product
+Parsed InvoiceDate for seasonality and trend analysis
 
 Business Value:
+These steps exposed operational inefficiencies, product risks, and revenue leakage.
 
-Identified products with quality or expectation mismatches (high return rates).
+📊 4. Exploratory Data Checks (EDA)
 
-Highlighted SKUs causing disproportionate lost revenue.
+EDA focused on quality diagnostics relevant to executive decisions:
 
-Enabled smarter promotional targeting.
+✅ Missing Data
 
-5. Executive Dashboard (Streamlit)
+Description and CustomerID were the most incomplete fields
 
-Delivered insights via an interactive, executive-ready dashboard with three views:
+Guest transactions often correlated with higher return/cancellation risk
 
-Executive Overview (Macro View)
+✅ Time Validity
 
-KPIs: Total Revenue, Lost Revenue, Net Revenue, Cancellation Rate
+Checked the full invoice date range to ensure no corrupted timestamps.
 
-Revenue vs Lost Revenue (by customer type)
+✅ Geographic Distribution
 
-Country-level revenue distribution
+Over 85 percent of transactions occurred in the UK
 
-Customer Analytics (Micro View)
+Non-UK countries were normalized or grouped for stable insights
 
-Registered vs Guest contribution
+✅ Product-Level Analysis
 
-Avg Revenue per Customer
+Calculated SKU-level return rates
 
-Cancellation rates by customer risk segment
+Identified items with high lost-revenue ratios
 
-Product Analytics (Meso View)
+Flagged products with extreme cancellation patterns
 
-Top 10 products by cancellations, returns, and lost revenue
+✅ Customer Behavior
 
-Product-level ROI table with cancellation/return rates
+Frequency and monetary value distribution
+
+Guest vs registered behavior differences
+
+✅ Anomaly Detection
+
+Flagged suspicious spikes in cancellations or bulk returns.
+
+🎯 5. Executive-Level Business Questions
+
+This project answers questions executives care about—not just technical metrics.
+
+Area	Question	Strategic Value
+Cancellations & Giveaways	What is the financial impact?	Cut losses, spot fraud
+	Which products/customers create high cancellation rates?	Improve product strategy
+Customer Behavior	Do guest customers behave differently?	Strengthen loyalty strategy
+Country Insights	Are non-UK regions growing?	Identify new markets
+Product Strategy	Which SKUs cause the most returns?	Improve supplier decisions
+🧠 6. Customer Segmentation (RFM + K-Means)
+✅ RFM Metrics
+
+Recency: Days since last purchase
+
+Frequency: Total invoices
+
+Monetary: Total revenue
+
+✅ Workflow
+
+Remove cancellations and giveaways
+
+Aggregate RFM per customer
+
+Scale numerical features
+
+Determine k using Elbow Method
+
+Cluster using K-Means
+
+Interpret segments meaningfully
+
+✅ Customer Segments Identified
+Segment	Description
+🚩 Unreliable One-Timers	High cancellations, low value
+🛍️ Casual Buyers	Irregular purchases, moderate risk
+💳 Steady Spenders	Consistent, predictable revenue
+👑 Loyal High-Value Customers	Reliable, high lifetime value
+Enhancements
+
+Added CancellationRate, GiveawayCount, IsGuest
+
+Performed segment comparison by country and SKU category
 
 Business Value:
-Executives can drill down into:
+Segmentation supports targeted retention and product personalization.
 
-High-risk geographies
+📈 7. Dashboard Design
+Structured for executive decision-making
+Section	Visuals	Insights
+Sales Overview	KPIs, trend lines, revenue net vs lost	Macro performance
+Cancellations & Giveaways	Bar charts, KPI cards	Financial leakage, fraud indicators
+Customer Segments	Cluster plots, tables	Loyalty, value, churn risk
+Product Performance	Bar charts, return-rate maps	Quality and profitability
+Country-Level Insights	Map visuals	Market concentration, expansion spots
+Risk & Anomalies	Heatmaps, time-based spikes	Fraud & operational risks
+Dashboard Filters
 
-Products driving dissatisfaction
+Time range
 
-Customer segments worth retaining
+Country
 
-ROI performance of promotions
+Customer type
 
-📊 Key Insights Delivered
+Product SKU
 
-Fraud Detection:
+Segment
 
-Countries with suspiciously high cancellation rates flagged for monitoring.
+Design Guidelines
 
-Customer Loyalty Risks:
+Executive-first narrative
 
-Registered customers canceled more than guests, suggesting unmet loyalty expectations.
+Story starts with wins → moves to risk → ends with strategy
 
-Hidden ROI Drain:
+Avoid sparse slicing (group small countries)
 
-Returns and giveaways eroded revenue on select SKUs, signaling product/marketing inefficiencies.
+📊 8. Key Insights Delivered
+✅ Fraud & Cancellation Risk
 
-Revenue Concentration Risk:
+Some countries show unusually high cancellation ratios, indicating possible fraud or fulfillment issues.
 
-Overdependence on UK market → diversification needed.
+✅ Loyalty Gaps
+
+Registered customers canceled more often than guests, suggesting loyalty programs may not be aligned to customer needs.
+
+✅ Product-Level ROI Drain
+
+A handful of SKUs produced disproportionate lost revenue through returns and giveaways.
+
+✅ Revenue Concentration Risk
+
+UK concentration creates vulnerability.
+Diversification into secondary markets is strategically valuable.
+
+✅ Guest vs Registered Behavior
+
+Guest customers buy frequently but inconsistently.
+Registered customers provide value but churn at higher rates.
+
+🧭 9. Business Recommendations
+1. Reduce Cancellation Leakage
+
+Investigate high-risk countries and SKUs
+
+Enforce review of cancellation reasons
+
+Introduce SKU-level quality audits
+
+2. Strengthen Customer Loyalty
+
+Build personalized campaigns for Steady Spenders and Loyal High-Value customers
+
+Address gaps contributing to registered-customer cancellations
+
+3. Optimize Product Strategy
+
+Use return/cancellation ratios to decide discontinuations
+
+Flag low-ROI promotions with high giveaway rates
+
+4. Market Expansion Strategy
+
+Identify and prioritize non-UK markets with meaningful revenue contributions
+
+5. Risk Monitoring System
+
+Automate anomaly detection for bulk returns or suspicious invoices
+
+🛠️ 10. Tech Stack
+
+Python: pandas, numpy, scikit-learn, duckdb
+
+Dashboard: Streamlit + Plotly
+
+Clustering: K-Means, feature scaling
+
+Data Processing: SQL with DuckDB
+
+Visualization: Plotly, matplotlib
+
+🧠 11. Lessons Learned
+
+Data quality issues often reveal deeper business problems
+
+Combining SQL + Python accelerates cleaning workflows
+
+Behavioral segmentation provides more value than demographics
+
+Negative quantities are not noise—often revenue-risk signals
+
+Executive dashboards must simplify, not overwhelm
